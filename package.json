@@ -1,0 +1,24 @@
+{
+  "name": "jup_staker",
+  "version": "1.0.0",
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.29.0",
+    "@project-serum/anchor": "^0.26.0",
+    "@solana/spl-token": "^0.4.1",
+    "@youpaichris/logger": "^5.0.0",
+    "child_process": "^1.0.2",
+    "dotenv": "^16.4.5",
+    "papaparse": "^5.4.1",
+    "winston": "^3.13.0"
+  },
+  "main": "index.js",
+  "bin": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "pkg": {
+    "assets": [
+      "src/**.*"
+    ]
+  }
+}
