@@ -55,17 +55,15 @@ async function handleMintTask() {
     // 查询SOL余额
     const SOLBalance = await connection.getBalance(wallet.publicKey);
     const jupBalanceInfo = await getSPLBalance(connection, wallet.publicKey, tokenOut);
-    if (SOLBalance < 0.0003 * 10 ** 9 ) {
+    logger.info('wallet address:', wt.Address, 'SOLBalance:', SOLBalance, 'jupBalance:', jupBalanceInfo.uiAmount, 'depost amount:', jupBalanceInfo.uiAmount);
+    if (SOLBalance < 0.0003 * 10 ** 9 || jupBalanceInfo.amount < 1 * 10 ** 6) {
       logger.error(`钱包:${wt.Address}余额不足, SOL余额:${SOLBalance}, JUP余额:${jupBalanceInfo.amount}`);
       date = new Date().toLocaleString();
-      await appendObjectToCSV({ date, ...wt, Error: '余额不足' }, './logs/StakeError.csv')
-      break;
+      await appendObjectToCSV({ date, ...wt, Error: '余额不足' }, './logs/StakeError.csv');
+      continue;
     }
-    logger.info('wallet address:', wt.Address, 'SOLBalance:', SOLBalance, 'jupBalance:', jupBalanceInfo.uiAmount, 'depost amount:', jupBalanceInfo.uiAmount);
-
     const MAX_RETRY = 100;
     let num = 0;
-
 
     while (num < MAX_RETRY) {
       const currentJupBalanceInfo = await getSPLBalance(connection, wallet.publicKey, tokenOut);
@@ -100,14 +98,21 @@ async function handleMintTask() {
         }
       } catch (error) {
         num++;
-        logger.error(`交易失败,休息6秒后重试...错误原因: ${error}`);
-        await sleep(0.1);
+
+        if ( 'Amount is zero' in error) {
+          logger.error('账户金额为0, 无法质押');
+          date = new Date().toLocaleString();
+          await appendObjectToCSV({ date, ...wt, Error: error }, './logs/StakeError.csv')
+          break;
+        }
         if (num === MAX_RETRY) {
           logger.error('重试次数已达上限');
           date = new Date().toLocaleString();
           await appendObjectToCSV({ date, ...wt, Error: error }, './logs/StakeError.csv')
           break;
         }
+        logger.error(`交易失败,休息6秒后重试...错误原因: ${error}`);
+        await sleep(0.1);
       }
     }
     if (i < wallets.length - 1) {
