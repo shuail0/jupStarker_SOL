@@ -9,6 +9,7 @@
     "child_process": "^1.0.2",
     "dotenv": "^16.4.5",
     "papaparse": "^5.4.1",
+    "readline-sync": "^1.4.10",
     "winston": "^3.13.0"
   },
   "main": "index.js",
