@@ -43,9 +43,9 @@ const locked_voter = new PublicKey(
 //投票链接  https://vote.jup.ag/proposal/5N9UbMGzga3SL8Rq7qDZCGfZX3FRDUhgqkSY2ksQjg8r
 //再改下 投票id 就行了
 const proposalId = new PublicKey(
-  "5N9UbMGzga3SL8Rq7qDZCGfZX3FRDUhgqkSY2ksQjg8r"
+  "DhJAwGDtHYdEy8mBoeZ3Yub5potxRJbvzycYUwhFGfox"
 );
-const voteId = 2;
+// const voteId = 2;
 const jupAddress = new PublicKey("JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN");
 const locker = new PublicKey("CVMdMd79no569tjc5Sq7kzz8isbfCcFyBS5TLGsrZ5dN");
 //此处locker 是 由  bJ1TRoFo2P6UHVwqdiipp6Qhp2HaaHpLowZ5LHet8Gm (未知)和 voTpe3tHQ7AjQHMapgSue2HJFAh2cGsdokqN3XqmVSj (质押地址)计算得出的
@@ -216,39 +216,39 @@ class Worker {
   async stake(stakeAmount) {
     stakeAmount = new anchor.BN(stakeAmount)
     // try {
-      let {
-        wallet,
-        provider: { connection },
-      } = this;
-      let [c, u] = await this.getOrCreateEscrow(),
-        [d, p] = await this.getOrCreateATAInstruction(
-          jupAddress,
-          c,
-          connection,
-          !0,
-          wallet.publicKey
-        ),
-        [y, h] = await this.getOrCreateATAInstruction(
-          jupAddress,
-          wallet.publicKey,
-          connection,
-          !0,
-          wallet.publicKey
-        ),
-        g = [u, p, h].filter(Boolean),
-        v = this.program.methods.increaseLockedAmount(stakeAmount).accounts({
-          escrow: c,
-          escrowTokens: d,
-          locker: locker,
-          payer: wallet.publicKey,
-          sourceTokens: y,
-          tokenProgram: TOKEN_PROGRAM_ID,
-        });
+    let {
+      wallet,
+      provider: { connection },
+    } = this;
+    let [c, u] = await this.getOrCreateEscrow(),
+      [d, p] = await this.getOrCreateATAInstruction(
+        jupAddress,
+        c,
+        connection,
+        !0,
+        wallet.publicKey
+      ),
+      [y, h] = await this.getOrCreateATAInstruction(
+        jupAddress,
+        wallet.publicKey,
+        connection,
+        !0,
+        wallet.publicKey
+      ),
+      g = [u, p, h].filter(Boolean),
+      v = this.program.methods.increaseLockedAmount(stakeAmount).accounts({
+        escrow: c,
+        escrowTokens: d,
+        locker: locker,
+        payer: wallet.publicKey,
+        sourceTokens: y,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      });
 
-      let instruction = await v.instruction();
+    let instruction = await v.instruction();
 
-      let signature = await this.toggleMaxDuration(!0, [...g, instruction]);
-      return signature;
+    let signature = await this.toggleMaxDuration(!0, [...g, instruction]);
+    return signature;
 
     //   if (signature) {
     //     logger.success(
@@ -267,7 +267,9 @@ class Worker {
     // }
   }
 
-  async vote() {
+  async vote(proposalId, voteId) {
+
+    proposalId = new PublicKey(proposalId);
     try {
       let [a, r] = await this.getOrCreateVote(proposalId);
 
@@ -278,22 +280,23 @@ class Worker {
         voteId,
         r ? [r] : []
       );
+      return signature;
 
-      if (signature) {
-        logger.success(
-          `第${this.index
-          } 子进程 ${this.wallet.publicKey.toBase58()} 投票成功 ${signature}`
-        );
-        return true;
-      } else {
-        logger.error(
-          `第${this.index} 子进程 ${this.wallet.publicKey.toBase58()} 投票失败`
-        );
-        return false;
-      }
+      // if (signature) {
+      //   logger.success(
+      //     `第${this.index
+      //     } 子进程 ${this.wallet.publicKey.toBase58()} 投票成功 ${signature}`
+      //   );
+      //   return true;
+      // } else {
+      //   logger.error(
+      //     `第${this.index} 子进程 ${this.wallet.publicKey.toBase58()} 投票失败`
+      //   );
+      //   return false;
+      // }
     } catch (error) {
       logger.error(`投票交易 Error: ${error.message}`);
-      return false;
+      // return false;
     }
   }
 
