@@ -26,8 +26,8 @@ const successPath = path.join(logsPath, 'VoteSuccess.csv');
 const errorPath = path.join(logsPath, 'VoteError.csv');
 
 
-let rpc = "https://mainnet.helius-rpc.com/?api-key=aac42329-3edf-4433-94ec-870600c2ba9e";
-const wallet_path = '/Users/lishuai/Documents/crypto/bockchainbot/SOLTestWalle加密.csv'; // 钱包文件路径
+let rpc = "";
+const wallet_path = ''; // 钱包文件路径
 
 const proposalId = 'DhJAwGDtHYdEy8mBoeZ3Yub5potxRJbvzycYUwhFGfox' // proposalId
 const voteId = 2 // voteId
