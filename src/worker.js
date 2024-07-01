@@ -21,7 +21,7 @@ const TYPE = parseInt(process.env.TYPE) || 1;
 const Amount =
   new anchor.BN(parseFloat(process.env.AMOUNT) * 1e6) || new anchor.BN(0);
 const UNIT_PRICE =
-  parseFloat(process.env.UNIT_PRICE) * LAMPORTS_PER_SOL || 100000;
+  parseFloat(process.env.UNIT_PRICE) * LAMPORTS_PER_SOL || 150000;
 const {
   TOKEN_PROGRAM_ID,
   ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -221,20 +221,8 @@ class Worker {
       provider: { connection },
     } = this;
     let [c, u] = await this.getOrCreateEscrow(),
-      [d, p] = await this.getOrCreateATAInstruction(
-        jupAddress,
-        c,
-        connection,
-        !0,
-        wallet.publicKey
-      ),
-      [y, h] = await this.getOrCreateATAInstruction(
-        jupAddress,
-        wallet.publicKey,
-        connection,
-        !0,
-        wallet.publicKey
-      ),
+      [d, p] = await this.getOrCreateATAInstruction(jupAddress, c, connection, !0, wallet.publicKey),
+      [y, h] = await this.getOrCreateATAInstruction(jupAddress, wallet.publicKey, connection, !0, wallet.publicKey),
       g = [u, p, h].filter(Boolean),
       v = this.program.methods.increaseLockedAmount(stakeAmount).accounts({
         escrow: c,
@@ -249,22 +237,31 @@ class Worker {
 
     let signature = await this.toggleMaxDuration(!0, [...g, instruction]);
     return signature;
+  }
 
-    //   if (signature) {
-    //     logger.success(
-    //       `第${this.index} 子进程 ${this.wallet.publicKey.toBase58()} 质押成功 ${signature}`
-    //     );
-    //     return true;
-    //   } else {
-    //     logger.error(
-    //       `第${this.index} 子进程 ${this.wallet.publicKey.toBase58()} 质押失败`
-    //     );
-    //     return false;
-    //   }
-    // } catch (error) {
-    //   logger.error(`交易 Error: ${error.message}`);
-    //   return false;
-    // }
+  async unlock() {
+
+    let { wallet, program } = this;
+    let o = arguments.length > 4 && void 0 !== arguments[4] ? arguments[4] : []
+    o.unshift(
+      ComputeBudgetProgram.setComputeUnitPrice({
+        microLamports: UNIT_PRICE,
+      }),
+      ComputeBudgetProgram.setComputeUnitLimit({ units: 150000 })
+    );
+    let [c, l] = deriveEscrow(locker, wallet.publicKey, locked_voter);
+    return await program.methods
+      .toggleMaxLock(false)
+      .accounts({
+        locker: locker,
+        escrow: c,
+        escrowOwner: this.wallet.publicKey,
+        payer: wallet.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .preInstructions(o)
+      .rpc();
+
   }
 
   async vote(proposalId, voteId) {
